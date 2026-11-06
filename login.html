@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Entrar</title>
+<link rel="icon" type="image/png" href="assets/icone.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4511">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Index">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,800;1,900&family=Barlow:wght@500;600;800&family=Permanent+Marker&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="entrada">
+    <div class="arco" aria-hidden="true"></div>
+    <div class="cabeca" aria-hidden="true"><span>Index</span><i></i><span>Lado A</span></div>
+
+    <div class="disco" id="disco">
+        <div class="vinil"><span class="rotulo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C12.8 8 16 11.2 24 12C16 12.8 12.8 16 12 24C11.2 16 8 12.8 0 12C8 11.2 11.2 8 12 0Z" fill="#fff"/></svg></span><span class="furo"></span></div>
+    </div>
+
+    <main class="card">
+        <form id="form">
+            <h1 id="titulo">Entrar</h1>
+            <label class="campo" id="campo-nome" hidden>
+                <span>Seu nome</span>
+                <input id="nome" autocomplete="name" maxlength="40">
+            </label>
+            <label class="campo">
+                <span>Usuário</span>
+                <input id="usuario" autocomplete="username" autocapitalize="none" required>
+            </label>
+            <label class="campo">
+                <span>Senha</span>
+                <input id="senha" type="password" autocomplete="current-password" required>
+            </label>
+            <label class="campo" id="campo-convite" hidden>
+                <span>Código de convite</span>
+                <input id="convite" autocomplete="off" autocapitalize="none">
+            </label>
+            <button class="principal" id="enviar" type="submit">Entrar</button>
+            <button class="trocar" id="trocar" type="button">Quero criar uma conta</button>
+            <p class="msg" id="msg" role="alert"></p>
+        </form>
+        <div id="ola" hidden>
+            <h1 id="ola-nome"></h1>
+            <p>Entrando…</p>
+        </div>
+    </main>
+
+<script src="config.js"></script>
+<script src="pwa.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+let modo = "login";
+
+// sem cabeçalho Content-Type, o navegador não faz preflight e o Apps Script aceita
+async function chamar(dados) {
+    const r = await fetch(API, { method: "POST", body: JSON.stringify(dados) });
+    return r.json();
+}
+
+function aplicarModo() {
+    const criando = modo === "cadastrar";
+    $("titulo").textContent = criando ? "Criar conta" : "Entrar";
+    $("enviar").textContent = criando ? "Criar conta" : "Entrar";
+    $("trocar").textContent = criando ? "Já tenho conta" : "Quero criar uma conta";
+    $("campo-nome").hidden = !criando;
+    $("campo-convite").hidden = !criando;
+    $("senha").autocomplete = criando ? "new-password" : "current-password";
+    $("msg").textContent = "";
+}
+
+function entrou(usuario) {
+    $("form").hidden = true;
+    $("ola").hidden = false;
+    $("ola-nome").textContent = "Oi, @" + usuario;
+    location.href = "feed.html";
+}
+
+$("trocar").addEventListener("click", () => {
+    modo = modo === "login" ? "cadastrar" : "login";
+    aplicarModo();
+});
+
+$("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (API.startsWith("COLE")) {
+        $("msg").textContent = "Falta colar a URL do Apps Script no começo do código.";
+        return;
+    }
+    $("enviar").disabled = true;
+    $("disco").classList.add("carregando");
+    $("msg").textContent = "";
+    try {
+        const r = await chamar({ acao: modo, usuario: $("usuario").value, senha: $("senha").value, nome: $("nome").value, convite: $("convite").value });
+        if (!r.ok) throw new Error(r.erro);
+        try { localStorage.setItem("token", r.token); } catch (err) {}
+        entrou(r.usuario);
+    } catch (err) {
+        $("msg").textContent = err.message || "Sem conexão com o servidor. Tente de novo.";
+    } finally {
+        $("enviar").disabled = false;
+        $("disco").classList.remove("carregando");
+    }
+});
+
+// já tem sessão salva? entra direto
+(async () => {
+    if (API.startsWith("COLE")) return;
+    let token = null;
+    try { token = localStorage.getItem("token"); } catch (err) {}
+    if (!token) return;
+    try {
+        const r = await chamar({ acao: "eu", token });
+        if (r.ok) entrou(r.usuario);
+    } catch (err) {}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Feed</title>
+<link rel="icon" type="image/png" href="assets/icone.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4511">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Index">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,800;1,900&family=Barlow:wght@500;600;800&family=Permanent+Marker&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="barra">
+    <a class="marca" href="feed.html">Index</a>
+    <button id="menu-btn" class="menu-btn" aria-expanded="false" aria-controls="menu">Menu</button>
+    <nav id="menu" class="menu" aria-label="Principal">
+        <button id="ir-feed">Feed</button>
+        <button id="ir-playlists">Playlists</button>
+        <button id="ir-reviews">Reviews</button>
+        <button id="perfil-btn" hidden>Perfil</button>
+        <button id="sair">Sair</button>
+    </nav>
+</header>
+
+<div class="fab-menu" id="fab-menu" hidden>
+    <button type="button" data-tipo="review">Review</button>
+    <button type="button" data-tipo="foto">Foto</button>
+    <button type="button" data-tipo="musica">Música</button>
+</div>
+<button type="button" class="fab" id="fab" aria-label="Criar" aria-expanded="false" aria-controls="fab-menu">+</button>
+
+<aside class="biblioteca" id="biblioteca" aria-label="Playlists"></aside>
+
+<main id="lista"></main>
+
+<dialog id="dialogo">
+    <form id="form">
+        <h2 id="novo-titulo">Novo post</h2>
+        <label class="campo"><span id="rot-foto">Foto</span><input id="imagem" type="file" accept="image/*"></label>
+        <label class="campo so-musica"><span>Música autoral</span><input id="audio" type="file" accept="audio/*"></label>
+        <div class="gravador so-musica">
+            <button type="button" id="gravar">Gravar agora</button>
+            <span id="tempo"></span>
+            <audio id="previa" controls hidden></audio>
+        </div>
+        <label class="campo so-musica"><span>Título da música</span><input id="titulo-post" maxlength="60"></label>
+        <label class="campo"><span>Legenda</span><textarea id="legenda-post" rows="2" maxlength="200"></textarea></label>
+        <div class="acoes">
+            <button type="button" id="cancelar">Cancelar</button>
+            <button type="submit" class="postar" id="postar">Postar</button>
+        </div>
+        <p class="msg" id="msg" role="alert"></p>
+    </form>
+</dialog>
+
+<dialog id="rv-dialogo">
+    <form id="rv-form">
+        <h2>Nova review</h2>
+        <div class="abas" id="rv-cats"></div>
+        <div id="rv-area-busca">
+            <label class="campo"><span>Buscar título</span><input id="rv-busca" autocomplete="off" maxlength="80"></label>
+            <div id="rv-resultados"></div>
+            <button type="button" class="link" id="rv-manual-btn">Não achei, preencher à mão</button>
+        </div>
+        <div id="rv-area-manual" hidden>
+            <label class="campo"><span>Título</span><input id="rv-m-titulo" maxlength="120"></label>
+            <label class="campo"><span>Ano ou artista</span><input id="rv-m-detalhe" maxlength="120"></label>
+            <button type="button" class="link" id="rv-voltar-busca">Voltar para a busca</button>
+        </div>
+        <div id="rv-escolhido" class="escolhido" hidden></div>
+        <label class="campo"><span>Nota: <b id="rv-nota-rotulo"></b></span><input id="rv-nota" type="range" min="0.5" max="5" step="0.5" value="3"></label>
+        <label class="campo"><span>Sua review (opcional)</span><textarea id="rv-texto" rows="4" maxlength="1500"></textarea></label>
+        <div class="acoes">
+            <button type="button" id="rv-cancelar">Cancelar</button>
+            <button type="submit" class="postar" id="rv-postar">Postar</button>
+        </div>
+        <p class="msg" id="rv-msg" role="alert"></p>
+    </form>
+</dialog>
+
+<dialog id="dialogo-pl">
+    <form id="form-pl">
+        <h2 id="pl-titulo">Nova playlist</h2>
+        <label class="campo"><span>Nome</span><input id="pl-nome" maxlength="60" required></label>
+        <label class="campo check"><input id="pl-publica" type="checkbox" checked><span>Pública (todos podem ver)</span></label>
+        <div class="acoes">
+            <button type="button" id="pl-cancelar">Cancelar</button>
+            <button type="submit" class="postar" id="pl-salvar">Salvar</button>
+        </div>
+        <p class="msg" id="pl-msg" role="alert"></p>
+    </form>
+</dialog>
+
+<dialog id="dialogo-add">
+    <h2>Adicionar a</h2>
+    <div id="add-lista"></div>
+    <button type="button" class="link" id="add-nova">+ Nova playlist</button>
+    <div class="acoes"><button type="button" id="add-fechar">Fechar</button></div>
+    <p class="msg" id="add-msg" role="alert"></p>
+</dialog>
+
+<dialog id="dialogo-musica">
+    <h2>Adicionar música</h2>
+    <label class="campo"><span>Buscar música</span><input id="m-busca" autocomplete="off" maxlength="80"></label>
+    <div id="m-resultados"></div>
+    <p class="msg">Músicas da busca tocam só a prévia de 30 segundos.</p>
+    <div class="acoes"><button type="button" id="m-fechar">Fechar</button></div>
+</dialog>
+
+<dialog id="dialogo-perfil">
+    <form id="form-perfil">
+        <h2>Editar perfil</h2>
+        <label class="campo"><span>Foto</span><input id="p-foto" type="file" accept="image/*"></label>
+        <label class="campo check"><input id="p-remover" type="checkbox"><span>Remover a foto atual</span></label>
+        <label class="campo"><span>Nome</span><input id="p-nome" maxlength="40"></label>
+        <label class="campo"><span>Bio</span><textarea id="p-bio" rows="3" maxlength="160"></textarea></label>
+        <div class="campo"><span>Cor do perfil</span><div class="cores" id="p-cores"></div></div>
+        <label class="campo"><span>Música fixada</span><select id="p-fixada"></select></label>
+        <div class="campo">
+            <span>Favoritos (até 4)</span>
+            <div class="abas" id="p-cats"></div>
+            <input id="p-busca" placeholder="Buscar título" autocomplete="off" maxlength="80">
+            <div id="p-resultados"></div>
+            <div class="chips" id="p-chips"></div>
+        </div>
+        <div class="acoes">
+            <button type="button" id="p-cancelar">Cancelar</button>
+            <button type="submit" class="postar" id="p-salvar">Salvar</button>
+        </div>
+        <p class="msg" id="p-msg" role="alert"></p>
+    </form>
+</dialog>
+
+<script src="config.js"></script>
+<script src="pwa.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const perfil = new URLSearchParams(location.search).get("u");
+const token = (() => { try { return localStorage.getItem("token"); } catch (e) { return null; } })();
+if (!token) location.replace("login.html");
+
+async function chamar(dados) {
+    const r = await fetch(API, { method: "POST", body: JSON.stringify({ token, ...dados }) });
+    const j = await r.json();
+    if (!j.ok && /Sessão expirada/.test(j.erro || "")) sair();
+    return j;
+}
+function sair() {
+    try { localStorage.removeItem("token"); } catch (e) {}
+    location.replace("login.html");
+}
+$("sair").addEventListener("click", sair);
+$("menu-btn").addEventListener("click", () => {
+    const aberto = $("menu").classList.toggle("aberto");
+    $("menu-btn").setAttribute("aria-expanded", aberto);
+});
+$("ir-feed").addEventListener("click", () => { location.href = "feed.html"; });
+$("ir-playlists").addEventListener("click", () => { location.href = "feed.html?pl=lista"; });
+$("ir-reviews").addEventListener("click", () => { location.href = "reviews.html"; });
+$("perfil-btn").addEventListener("click", () => { location.href = "feed.html?u=" + encodeURIComponent(meuUsuario); });
+
+function el(tag, classe, texto) {
+    const e = document.createElement(tag);
+    if (classe) e.className = classe;
+    if (texto !== undefined) e.textContent = texto;
+    return e;
+}
+const urlImagem = (id) => "https://lh3.googleusercontent.com/d/" + id;
+const formatarData = (iso) => new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+
+/* ---------- player: uma música por vez ---------- */
+const audio = new Audio();
+let atual = null;
+let meuUsuario = "";
+let aba = "posts", sequencia = false, fila = [];
+function soltar() {
+    if (!atual) return;
+    atual.botao.textContent = "▶";
+    atual.vinil?.classList.remove("tocando");
+    atual = null;
+}
+audio.addEventListener("play", () => { if (atual) { atual.botao.textContent = "⏸"; atual.vinil?.classList.add("tocando"); } });
+audio.addEventListener("pause", () => { if (atual) { atual.botao.textContent = "▶"; atual.vinil?.classList.remove("tocando"); } });
+// na playlist, ao terminar uma música toca a próxima da lista
+audio.addEventListener("ended", () => {
+    const i = atual ? fila.findIndex((x) => x.post.id === atual.id) : -1;
+    const prox = sequencia && i >= 0 ? fila[i + 1] : null;
+    soltar();
+    if (prox) alternar(prox.post, prox.botao, prox.vinil);
+});
+const cacheAudio = new Map();
+async function urlDoAudio(post) {
+    if (post.url) return post.url; // prévia da Apple: link direto
+    if (cacheAudio.has(post.id)) return cacheAudio.get(post.id);
+    const r = await chamar({ acao: "baixarAudio", post_id: post.id });
+    if (!r.ok) throw new Error(r.erro);
+    const bytes = Uint8Array.from(atob(r.dados), (c) => c.charCodeAt(0));
+    const url = URL.createObjectURL(new Blob([bytes], { type: r.mime }));
+    cacheAudio.set(post.id, url);
+    return url;
+}
+async function alternar(post, botao, vinil) {
+    if (atual && atual.id === post.id) { audio.paused ? audio.play() : audio.pause(); return; }
+    audio.pause();
+    soltar();
+    atual = { id: post.id, botao, vinil };
+    botao.textContent = "…";
+    botao.disabled = true;
+    try {
+        audio.src = await urlDoAudio(post);
+        if (!atual || atual.id !== post.id) return; // clicou em outra música enquanto carregava
+        await audio.play();
+    } catch (err) {
+        if (atual && atual.id === post.id) soltar();
+        alert(err.message || "Não foi possível tocar a música.");
+    } finally {
+        botao.disabled = false;
+    }
+}
+
+/* ---------- salvar na playlist e comentários ---------- */
+function botaoSalvar(p) {
+    const b = el("button", "curtir", "Playlist");
+    b.addEventListener("click", () => abrirSeletor(p));
+    return b;
+}
+
+function painelComentarios(p, botao) {
+    const caixa = el("div", "comentarios");
+    caixa.hidden = true;
+    const lista = el("div", "lista-coment");
+    const form = el("form", "form-coment");
+    const campo = el("input");
+    campo.placeholder = "Escreva um comentário";
+    campo.maxLength = 300;
+    campo.setAttribute("aria-label", "Comentário");
+    const enviar = el("button", "curtir", "Enviar");
+    enviar.type = "submit";
+    form.append(campo, enviar);
+    caixa.append(lista, form);
+
+    let total = p.comentarios, carregado = false;
+    const rotulo = () => { botao.textContent = "Comentários (" + total + ")"; };
+    rotulo();
+
+    const linha = (c) => {
+        const l = el("p", "coment");
+        l.append(el("strong", "", "@" + c.usuario), " ", c.texto);
+        if (c.pode) {
+            const x = el("button", "", "Apagar");
+            x.addEventListener("click", async () => {
+                x.disabled = true;
+                const r = await chamar({ acao: "apagarComentario", comentario_id: c.id }).catch(() => ({ ok: false, erro: "Sem conexão com o servidor." }));
+                if (!r.ok) { x.disabled = false; alert(r.erro); return; }
+                l.remove(); total--; rotulo();
+            });
+            l.append(x);
+        }
+        return l;
+    };
+
+    botao.addEventListener("click", async () => {
+        caixa.hidden = !caixa.hidden;
+        if (caixa.hidden || carregado) return;
+        lista.replaceChildren(el("p", "vazio-coment", "Carregando…"));
+        const r = await chamar({ acao: "comentarios", post_id: p.id }).catch(() => ({ ok: false, erro: "Sem conexão com o servidor." }));
+        if (!r.ok) { lista.replaceChildren(el("p", "vazio-coment", r.erro)); return; }
+        carregado = true;
+        lista.replaceChildren(...(r.comentarios.length ? r.comentarios.map(linha) : [el("p", "vazio-coment", "Ainda sem comentários.")]));
+    });
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const texto = campo.value.trim();
+        if (!texto || !carregado) return;
+        enviar.disabled = true;
+        const r = await chamar({ acao: "comentar", post_id: p.id, texto }).catch(() => ({ ok: false, erro: "Sem conexão com o servidor." }));
+        enviar.disabled = false;
+        if (!r.ok) { alert(r.erro); return; }
+        lista.querySelector(".vazio-coment")?.remove();
+        lista.append(linha(r.comentario));
+        campo.value = ""; total++; rotulo();
+    });
+    return caixa;
+}
+
+/* ---------- cartão de review (aparece no feed junto dos posts) ---------- */
+const NOMES = { filme: "Filme", musica: "Música", album: "Álbum" };
+const estrelas = (n) => "★".repeat(Math.floor(n)) + (n % 1 ? "½" : "") + " " + String(n).replace(".", ",");
+function cartaoReview(r) {
+    const a = el("article", "post review");
+    const topo = el("header", "topo");
+    const autor = el("a", "autor", "@" + r.usuario);
+    autor.href = "feed.html?u=" + encodeURIComponent(r.usuario);
+    const quem = el("div", "quem");
+    if (r.avatar) {
+        const av = el("img", "avatar-mini");
+        av.src = urlImagem(r.avatar); av.alt = ""; av.loading = "lazy";
+        quem.append(av);
+    }
+    quem.append(autor);
+    topo.append(quem, el("time", "data", formatarData(r.criado_em)));
+    const corpo = el("div", "review-corpo");
+    if (r.capa_url) {
+        const i = el("img", "capa");
+        i.src = r.capa_url; i.alt = "Capa de " + r.titulo; i.loading = "lazy";
+        corpo.append(i);
+    }
+    const info = el("div", "review-info");
+    const t = el("a", "titulo", r.titulo);
+    t.href = "reviews.html?item=" + encodeURIComponent(r.item_id);
+    info.append(el("p", "categoria", NOMES[r.categoria] || r.categoria), t);
+    if (r.detalhe) info.append(el("p", "detalhe", r.detalhe));
+    info.append(el("p", "nota", estrelas(r.nota)));
+    corpo.append(info);
+    a.append(topo, corpo);
+    if (r.texto) a.append(el("p", "legenda", r.texto));
+
+    const rodape = el("div", "rodape");
+    const curtir = el("button", "curtir");
+    let curti = r.curti, total = r.curtidas;
+    const pintar = () => { curtir.textContent = "♥ " + total; curtir.setAttribute("aria-pressed", curti); };
+    pintar();
+    curtir.addEventListener("click", async () => {
+        curti = !curti; total += curti ? 1 : -1; pintar();
+        const x = await chamar({ acao: "curtir", post_id: r.id }).catch(() => ({ ok: false }));
+        if (!x.ok) { curti = !curti; total += curti ? 1 : -1; pintar(); }
+    });
+    const botaoComent = el("button", "curtir");
+    rodape.append(curtir, botaoComent);
+    a.append(rodape, painelComentarios(r, botaoComent));
+    if (r.usuario === meuUsuario) {
+        const apagar = el("button", "apagar", "Apagar");
+        apagar.addEventListener("click", async () => {
+            if (!confirm("Apagar esta review? Não dá para desfazer.")) return;
+            apagar.disabled = true;
+            const x = await chamar({ acao: "apagarReview", review_id: r.id }).catch(() => ({ ok: false, erro: "Sem conexão com o servidor." }));
+            if (!x.ok) { apagar.disabled = false; alert(x.erro); return; }
+            a.remove();
+        });
+        rodape.append(apagar);
+    }
+    return a;
+}
+
+
+/* ---------- cartão de post ---------- */
+function cartao(p) {
+    const a = el("article", "post");
+    const topo = el("header", "topo");
+    const autor = el("a", "autor", "@" + p.usuario);
+    autor.href = "feed.html?u=" + encodeURIComponent(p.usuario);
+    const quem = el("div", "quem");
+    if (p.avatar) {
+        const av = el("img", "avatar-mini");
+        av.src = urlImagem(p.avatar); av.alt = ""; av.loading = "lazy";
+        quem.append(av);
+    }
+    quem.append(autor);
+    topo.append(quem, el("time", "data", formatarData(p.criado_em)));
+    a.append(topo);
+
+    if (p.audio) {
+        const disco = el("div", "disco"), vinil = el("div", "vinil"), rotulo = el("span", "rotulo");
+        if (p.imagem) {
+            const i = new Image();
+            i.src = urlImagem(p.imagem);
+            i.alt = "Capa de " + p.titulo;
+            rotulo.append(i);
+        } else rotulo.textContent = "♪";
+        vinil.append(rotulo, el("span", "furo"));
+        disco.append(vinil);
+        const botao = el("button", "tocar", "▶");
+        botao.setAttribute("aria-label", "Tocar " + p.titulo);
+        botao.addEventListener("click", () => alternar(p, botao, vinil));
+        fila.push({ post: p, botao, vinil });
+        a.append(disco, botao);
+    } else if (p.imagem) {
+        const i = el("img", "foto");
+        i.src = urlImagem(p.imagem);
+        i.alt = p.legenda || "Foto de @" + p.usuario;
+        i.loading = "lazy";
+        a.append(i);
+    }
+    if (p.titulo) a.append(el("h2", "titulo", p.titulo));
+    if (p.legenda) a.append(el("p", "legenda", p.legenda));
+
+    const curtir = el("button", "curtir");
+    let curti = p.curti, total = p.curtidas;
+    const pintar = () => { curtir.textContent = "♥ " + total; curtir.setAttribute("aria-pressed", curti); };
+    pintar();
+    curtir.addEventListener("click", async () => {
+        curti = !curti; total += curti ? 1 : -1; pintar();
+        const r = await chamar({ acao: "curtir", post_id: p.id }).catch(() => ({ ok: false }));
+        if (!r.ok) { curti = !curti; total += curti ? 1 : -1; pintar(); }
+    });
+    const rodape = el("div", "rodape");
+    rodape.append(curtir);
+    if (p.audio) rodape.append(botaoSalvar(p));
+    const botaoComent = el("button", "curtir");
+    rodape.append(botaoComent);
+    a.append(rodape, painelComentarios(p, botaoComent));
+    if (p.usuario === meuUsuario) {
+        const apagar = el("button", "apagar", "Apagar");
+        apagar.addEventListener("click", async () => {
+            if (!confirm("Apagar este post? Não dá para desfazer.")) return;
+            apagar.disabled = true;
+            const r = await chamar({ acao: "apagar", post_id: p.id }).catch(() => ({ ok: false, erro: "Sem conexão com o servidor." }));
+            if (!r.ok) { apagar.disabled = false; alert(r.erro); return; }
+            if (atual && atual.id === p.id) { audio.pause(); soltar(); }
+            a.remove();
+        });
+        rodape.append(apagar);
+    }
+    return a;
+}
+
+/* ---------- perfil ---------- */
+const CORES = { laranja:"#ff4511", vermelho:"#e0112b", azul:"#2a5bff", verde:"#2fbf5a", rosa:"#ff4fa3", amarelo:"#ffd21f" };
+
+function cabecalhoPerfil(pf) {
+    const bloco = el("div", "perfil-bloco");
+    const topo = el("section", "perfil-topo");
+    topo.style.setProperty("--cor", CORES[pf.cor] || CORES.laranja);
+    const foto = el("div", "avatar-grande");
+    if (pf.foto) { const i = new Image(); i.src = urlImagem(pf.foto); i.alt = "Foto de " + pf.nome; foto.append(i); }
+    else foto.textContent = pf.usuario.charAt(0).toUpperCase();
+    const info = el("div", "perfil-info");
+    info.append(el("h1", "perfil-nome", pf.nome), el("p", "autor", "@" + pf.usuario));
+    if (pf.bio) info.append(el("p", "bio", pf.bio));
+    if (pf.souEu) {
+        const editar = el("button", "curtir", "Editar perfil");
+        editar.addEventListener("click", () => abrirEdicao(pf));
+        info.append(editar);
+    }
+    topo.append(foto, info);
+    bloco.append(topo);
+    if (pf.favoritos.length) {
+        bloco.append(el("p", "rotulo-secao", "Favoritos"));
+        const grade = el("div", "favoritos");
+        pf.favoritos.forEach((x) => {
+            const a = el("a", "fav");
+            a.href = "reviews.html?item=" + encodeURIComponent(x.item_id);
+            if (x.capa_url) { const i = new Image(); i.src = x.capa_url; i.alt = ""; i.loading = "lazy"; a.append(i); }
+            a.append(el("span", "", x.titulo));
+            grade.append(a);
+        });
+        bloco.append(grade);
+    }
+    if (aba === "posts" && pf.fixada) {
+        bloco.append(el("p", "rotulo-secao", "Música fixada"), cartao(pf.fixada));
+    }
+    return bloco;
+}
+
+const dp = $("dialogo-perfil");
+let edit = null, esperaFav = null, buscaFavId = 0;
+const recortarFoto = (file) => new Promise((ok, erro) => {
+    const img = new Image();
+    img.onload = () => {
+        const lado = Math.min(img.width, img.height), c = document.createElement("canvas");
+        c.width = c.height = 400;
+        c.getContext("2d").drawImage(img, (img.width - lado) / 2, (img.height - lado) / 2, lado, lado, 0, 0, 400, 400);
+        URL.revokeObjectURL(img.src);
+        ok(c.toDataURL("image/jpeg", 0.85).split(",")[1]);
+    };
+    img.onerror = () => erro(new Error("Não foi possível ler a foto."));
+    img.src = URL.createObjectURL(file);
+});
+function pintarCores() {
+    $("p-cores").replaceChildren(...Object.keys(CORES).map((k) => {
+        const b = el("button", "cor");
+        b.type = "button"; b.style.background = CORES[k]; b.title = k;
+        b.setAttribute("aria-label", "Cor " + k); b.setAttribute("aria-pressed", edit.cor === k);
+        b.addEventListener("click", () => { edit.cor = k; pintarCores(); });
+        return b;
+    }));
+}
+function pintarCatsFav() {
+    $("p-cats").replaceChildren(...[["filme", "Filme"], ["musica", "Música"], ["album", "Álbum"]].map(([id, nome]) => {
+        const b = el("button", "curtir", nome);
+        b.type = "button"; b.setAttribute("aria-pressed", edit.cat === id);
+        b.addEventListener("click", () => { edit.cat = id; pintarCatsFav(); buscaFavId++; $("p-resultados").replaceChildren(); $("p-busca").value = ""; });
+        return b;
+    }));
+}
+function pintarChips() {
+    $("p-chips").replaceChildren(...edit.favoritos.map((x, i) => {
+        const b = el("button", "chip", x.titulo + " ×");
+        b.type = "button"; b.setAttribute("aria-label", "Remover " + x.titulo);
+        b.addEventListener("click", () => { edit.favoritos.splice(i, 1); pintarChips(); });
+        return b;
+    }));
+    $("p-busca").hidden = edit.favoritos.length >= 4;
+}
+async function buscarFav() {
+    const termo = $("p-busca").value.trim(), id = ++buscaFavId, caixa = $("p-resultados");
+    if (termo.length < 2) { caixa.replaceChildren(); return; }
+    caixa.replaceChildren(el("p", "vazio-coment", "Buscando…"));
+    const r = await chamar({ acao: "buscarItem", categoria: edit.cat, termo }).catch(() => ({ ok: false, erro: "Sem conexão com o servidor." }));
+    if (id !== buscaFavId) return;
+    if (!r.ok) { caixa.replaceChildren(el("p", "vazio-coment", r.erro)); return; }
+    if (!r.itens.length) { caixa.replaceChildren(el("p", "vazio-coment", "Nada encontrado.")); return; }
+    caixa.replaceChildren(...r.itens.map((item) => {
+        const b = el("button", "resultado");
+        b.type = "button";
+        if (item.capa_url) { const i = new Image(); i.src = item.capa_url; i.alt = ""; b.append(i); }
+        b.append(el("span", "", item.titulo + (item.detalhe ? " (" + item.detalhe + ")" : "")));
+        b.addEventListener("click", () => {
+            if (edit.favoritos.length < 4 && !edit.favoritos.some((x) => x.item_id === item.item_id)) edit.favoritos.push({ categoria: edit.cat, ...item });
+            pintarChips(); caixa.replaceChildren(); $("p-busca").value = "";
+        });
+        return b;
+    }));
+}
+function abrirEdicao(pf) {
+    edit = { cor: pf.cor, cat: "filme", favoritos: pf.favoritos.slice() };
+    $("p-nome").value = pf.nome; $("p-bio").value = pf.bio; $("p-foto").value = ""; $("p-remover").checked = false;
+    $("p-msg").textContent = ""; $("p-busca").value = ""; $("p-resultados").replaceChildren();
+    const sel = $("p-fixada");
+    sel.replaceChildren(new Option("Nenhuma", ""));
+    (pf.minhas_musicas || []).forEach((m) => sel.add(new Option(m.titulo, m.id)));
+    sel.value = pf.fixada_id || "";
+    pintarCores(); pintarCatsFav(); pintarChips();
+    dp.showModal();
+}
+$("p-busca").addEventListener("input", () => { clearTimeout(esperaFav); esperaFav = setTimeout(buscarFav, 450); });
+$("p-cancelar").addEventListener("click", () => dp.close());
+$("form-perfil").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("p-salvar").disabled = true;
+    $("p-msg").textContent = "Salvando…";
+    try {
+        const arq = $("p-foto").files[0];
+        const r = await chamar({
+            acao: "salvarPerfil", nome: $("p-nome").value, bio: $("p-bio").value, cor: edit.cor,
+            fixada_id: $("p-fixada").value, favoritos: edit.favoritos,
+            foto: arq ? await recortarFoto(arq) : "", remover_foto: $("p-remover").checked
+        });
+        if (!r.ok) throw new Error(r.erro);
+        dp.close();
+        carregar();
+    } catch (err) {
+        $("p-msg").textContent = err.message || "Não foi possível salvar. Tente de novo.";
+    } finally {
+        $("p-salvar").disabled = false;
+    }
+});
+
+/* ---------- playlists ---------- */
+const plParam = new URLSearchParams(location.search).get("pl");
+let plAtual = null, plEditando = null;
+const dpl = $("dialogo-pl"), da = $("dialogo-add"), dm = $("dialogo-musica");
+const msgRede = { ok: false, erro: "Sem conexão com o servidor." };
+
+function itemBiblioteca(p, dono) {
+    const a = el("a", "pl-item");
+    a.href = "feed.html?pl=" + encodeURIComponent(p.id) + (p.id === "salvas" ? "&u=" + encodeURIComponent(dono) : "");
+    let capa;
+    if (p.capa) { capa = el("img", "pl-capa"); capa.src = p.capa; capa.alt = ""; capa.loading = "lazy"; }
+    else capa = el("div", "pl-capa", p.nome.charAt(0).toUpperCase());
+    const texto = el("div", "pl-texto");
+    texto.append(el("span", "pl-nome", p.nome), el("span", "pl-info", p.total + (p.total === 1 ? " música" : " músicas") + (p.publica ? "" : ", privada")));
+    a.append(capa, texto);
+    return a;
+}
+async function carregarBiblioteca() {
+    const aside = $("biblioteca");
+    const r = await chamar({ acao: "playlists" }).catch(() => null);
+    aside.replaceChildren(el("p", "rotulo-secao", "Suas playlists"));
+    const nova = el("button", "curtir", "+ Nova playlist");
+    nova.addEventListener("click", () => abrirPlaylist(null));
+    aside.append(nova);
+    if (!r || !r.ok) { aside.append(el("p", "vazio-coment", "Não foi possível carregar.")); return; }
+    meuUsuario = r.usuario;
+    $("perfil-btn").hidden = false;
+    r.playlists.forEach((p) => aside.append(itemBiblioteca(p, r.usuario)));
+}
+async function verBiblioteca() {
+    const lista = $("lista");
+    lista.replaceChildren();
+    document.title = "Playlists";
+    const v = el("a", "voltar", perfil ? "← Perfil de @" + perfil : "← Feed");
+    v.href = perfil ? "feed.html?u=" + encodeURIComponent(perfil) : "feed.html";
+    lista.append(v, el("h1", "perfil", perfil ? "Playlists de @" + perfil : "Playlists"));
+    const r = await chamar({ acao: "playlists", usuario: perfil }).catch(() => msgRede);
+    if (!r.ok) { lista.append(el("p", "vazio", r.erro)); return; }
+    if (r.souDono) {
+        const nova = el("button", "curtir", "+ Nova playlist");
+        nova.addEventListener("click", () => abrirPlaylist(null));
+        lista.append(nova);
+    }
+    r.playlists.forEach((p) => lista.append(itemBiblioteca(p, r.usuario)));
+}
+function linhaItem(it, pl) {
+    const post = { id: it.ref, audio: it.audio_id, url: it.preview_url };
+    const linha = el("article", "pl-linha");
+    let capa;
+    if (it.capa_url) { capa = el("img", "pl-capa"); capa.src = it.capa_url; capa.alt = ""; capa.loading = "lazy"; }
+    else capa = el("div", "pl-capa", "♪");
+    const texto = el("div", "pl-texto");
+    texto.append(el("span", "pl-titulo", it.titulo), el("span", "pl-detalhe", it.detalhe + (it.tipo === "apple" ? ", prévia de 30 s" : "")));
+    const tocar = el("button", "tocar mini", "▶");
+    tocar.setAttribute("aria-label", "Tocar " + it.titulo);
+    tocar.addEventListener("click", () => alternar(post, tocar, null));
+    fila.push({ post, botao: tocar, vinil: null });
+    linha.append(capa, texto, tocar);
+    if (pl.souDono) {
+        const x = el("button", "apagar", "Remover");
+        x.addEventListener("click", async () => {
+            x.disabled = true;
+            const r = await chamar({ acao: "removerItemPlaylist", playlist_id: pl.id, ref: it.ref }).catch(() => msgRede);
+            if (!r.ok) { x.disabled = false; alert(r.erro); return; }
+            if (atual && atual.id === it.ref) { audio.pause(); soltar(); }
+            fila = fila.filter((q) => q.post.id !== it.ref);
+            linha.remove();
+            carregarBiblioteca();
+        });
+        linha.append(x);
+    }
+    return linha;
+}
+async function verPlaylist(id, dono) {
+    const lista = $("lista");
+    lista.replaceChildren(el("p", "vazio", "Carregando…"));
+    fila = []; sequencia = true;
+    const r = await chamar({ acao: "playlistItens", playlist_id: id, usuario: dono }).catch(() => msgRede);
+    lista.replaceChildren();
+    const v = el("a", "voltar", "← Playlists");
+    v.href = "feed.html?pl=lista" + (r.ok ? "&u=" + encodeURIComponent(r.playlist.dono) : "");
+    if (!r.ok) { lista.append(v, el("p", "vazio", r.erro)); return; }
+    const pl = plAtual = r.playlist;
+    document.title = pl.nome;
+    lista.append(v, el("h1", "perfil", pl.nome),
+        el("p", "vazio", "De @" + pl.dono + ", " + (pl.publica ? "pública" : "privada") + ", " + pl.total + (pl.total === 1 ? " música" : " músicas")));
+    if (pl.souDono) {
+        const acoes = el("div", "pl-acoes");
+        const botoes = [];
+        if (id !== "salvas") {
+            botoes.push(["Adicionar música", () => { $("m-busca").value = ""; $("m-resultados").replaceChildren(); dm.showModal(); }]);
+            botoes.push(["Editar", () => abrirPlaylist(pl)]);
+            botoes.push(["Excluir", async () => {
+                if (!confirm("Excluir a playlist “" + pl.nome + "”? As músicas dos posts continuam no site.")) return;
+                const x = await chamar({ acao: "excluirPlaylist", playlist_id: pl.id }).catch(() => msgRede);
+                if (!x.ok) { alert(x.erro); return; }
+                location.href = "feed.html?pl=lista";
+            }]);
+        }
+        botoes.forEach(([nome, acao]) => { const b = el("button", "curtir", nome); b.addEventListener("click", acao); acoes.append(b); });
+        lista.append(acoes);
+    }
+    if (!r.itens.length) { lista.append(el("p", "vazio", "Nenhuma música aqui ainda.")); return; }
+    r.itens.forEach((it) => lista.append(linhaItem(it, pl)));
+}
+
+function abrirPlaylist(pl) {
+    plEditando = pl;
+    $("pl-titulo").textContent = pl ? "Editar playlist" : "Nova playlist";
+    $("pl-nome").value = pl ? pl.nome : "";
+    $("pl-publica").checked = pl ? pl.publica : true;
+    $("pl-msg").textContent = "";
+    dpl.showModal();
+}
+$("pl-cancelar").addEventListener("click", () => dpl.close());
+$("form-pl").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("pl-salvar").disabled = true;
+    const dados = { nome: $("pl-nome").value, publica: $("pl-publica").checked };
+    try {
+        const r = plEditando
+            ? await chamar({ acao: "editarPlaylist", playlist_id: plEditando.id, ...dados })
+            : await chamar({ acao: "criarPlaylist", ...dados });
+        if (!r.ok) throw new Error(r.erro);
+        dpl.close();
+        if (plEditando) { carregarBiblioteca(); verPlaylist(plEditando.id, perfil); }
+        else location.href = "feed.html?pl=" + encodeURIComponent(r.id);
+    } catch (err) {
+        $("pl-msg").textContent = err.message || "Não foi possível salvar.";
+    } finally {
+        $("pl-salvar").disabled = false;
+    }
+});
+
+// escolher em quais playlists um post entra
+async function abrirSeletor(p) {
+    $("add-lista").replaceChildren(el("p", "vazio-coment", "Carregando…"));
+    $("add-msg").textContent = "";
+    da.showModal();
+    const r = await chamar({ acao: "playlistsParaPost", post_id: p.id }).catch(() => msgRede);
+    if (!r.ok) { $("add-lista").replaceChildren(el("p", "vazio-coment", r.erro)); return; }
+    $("add-lista").replaceChildren(...r.playlists.map((pl) => {
+        const b = el("button", "resultado");
+        b.type = "button";
+        let tem = pl.tem;
+        const pintar = () => { b.textContent = (tem ? "✓ " : "") + pl.nome; b.setAttribute("aria-pressed", tem); };
+        pintar();
+        b.addEventListener("click", async () => {
+            const x = await chamar({ acao: "alternarPlaylistPost", playlist_id: pl.id, post_id: p.id }).catch(() => msgRede);
+            if (!x.ok) { $("add-msg").textContent = x.erro; return; }
+            tem = x.tem; pintar(); carregarBiblioteca();
+        });
+        return b;
+    }));
+}
+$("add-fechar").addEventListener("click", () => da.close());
+$("add-nova").addEventListener("click", () => { da.close(); abrirPlaylist(null); });
+
+// buscar música da Apple para a playlist aberta
+let esperaM = null, buscaMId = 0;
+async function buscarMusica() {
+    const termo = $("m-busca").value.trim(), id = ++buscaMId, caixa = $("m-resultados");
+    if (termo.length < 2) { caixa.replaceChildren(); return; }
+    caixa.replaceChildren(el("p", "vazio-coment", "Buscando…"));
+    const r = await chamar({ acao: "buscarItem", categoria: "musica", termo }).catch(() => msgRede);
+    if (id !== buscaMId) return;
+    if (!r.ok) { caixa.replaceChildren(el("p", "vazio-coment", r.erro)); return; }
+    const itens = r.itens.filter((x) => x.preview_url);
+    if (!itens.length) { caixa.replaceChildren(el("p", "vazio-coment", "Nada encontrado com prévia.")); return; }
+    caixa.replaceChildren(...itens.map((item) => {
+        const b = el("button", "resultado");
+        b.type = "button";
+        if (item.capa_url) { const i = new Image(); i.src = item.capa_url; i.alt = ""; b.append(i); }
+        b.append(el("span", "", item.titulo + (item.detalhe ? " (" + item.detalhe + ")" : "")));
+        b.addEventListener("click", async () => {
+            b.disabled = true;
+            const x = await chamar({ acao: "adicionarMusica", playlist_id: plAtual.id, item }).catch(() => msgRede);
+            if (!x.ok) { b.disabled = false; alert(x.erro); return; }
+            dm.close();
+            verPlaylist(plAtual.id, perfil);
+            carregarBiblioteca();
+        });
+        return b;
+    }));
+}
+$("m-busca").addEventListener("input", () => { clearTimeout(esperaM); esperaM = setTimeout(buscarMusica, 450); });
+$("m-fechar").addEventListener("click", () => dm.close());
+
+/* ---------- carregar ---------- */
+async function carregar() {
+    const lista = $("lista");
+    lista.replaceChildren();
+    fila = [];
+    sequencia = !!perfil && aba === "playlist";
+    if (perfil) {
+        const v = el("a", "voltar", "← Voltar ao feed");
+        v.href = "feed.html";
+        const abas = el("div", "abas");
+        [["posts", "Posts"], ["playlist", "Playlists"]].forEach(([id, nome]) => {
+            const b = el("button", "curtir", nome);
+            b.setAttribute("aria-pressed", aba === id);
+            b.addEventListener("click", () => {
+                if (id === "playlist") { location.href = "feed.html?pl=lista&u=" + encodeURIComponent(perfil); return; }
+                if (aba !== id) { aba = id; audio.pause(); soltar(); carregar(); }
+            });
+            abas.append(b);
+        });
+        const rv = el("button", "curtir", "Reviews");
+        rv.addEventListener("click", () => { location.href = "reviews.html?u=" + encodeURIComponent(perfil); });
+        abas.append(rv);
+        lista.append(v, el("h1", "perfil", "@" + perfil), abas);
+        document.title = "@" + perfil;
+    }
+    let r;
+    try { r = await chamar(sequencia ? { acao: "playlist", usuario: perfil } : { acao: "feed", usuario: perfil }); }
+    catch (e) { lista.append(el("p", "vazio", "Sem conexão com o servidor. Recarregue a página.")); return; }
+    if (!r.ok) { lista.append(el("p", "vazio", r.erro)); return; }
+    meuUsuario = r.eu;
+    $("perfil-btn").hidden = false;
+    if (perfil && r.perfil) {
+        const h = lista.querySelector("h1.perfil");
+        if (h) h.replaceWith(cabecalhoPerfil(r.perfil));
+    }
+    if (!r.posts.length) {
+        lista.append(el("p", "vazio", sequencia ? "@" + perfil + " ainda não salvou nenhuma música." : perfil ? "@" + perfil + " ainda não postou nada." : "Ainda não tem nada por aqui. Faça o primeiro post."));
+        return;
+    }
+    r.posts.forEach((p) => lista.append(p.kind === "review" ? cartaoReview(p) : cartao(p)));
+}
+
+/* ---------- novo post ---------- */
+const dialogo = $("dialogo");
+function abrirNovo(modo) {
+    dialogo.dataset.modo = modo;
+    $("novo-titulo").textContent = modo === "foto" ? "Nova foto" : "Nova música";
+    $("rot-foto").textContent = modo === "foto" ? "Foto" : "Capa (opcional)";
+    $("form").reset();
+    limparGravacao();
+    $("msg").textContent = "";
+    dialogo.showModal();
+}
+$("cancelar").addEventListener("click", () => dialogo.close());
+
+const lerBase64 = (file) => new Promise((ok, erro) => {
+    const r = new FileReader();
+    r.onload = () => ok(r.result.split(",")[1]);
+    r.onerror = () => erro(new Error("Não foi possível ler o arquivo."));
+    r.readAsDataURL(file);
+});
+// reduz a foto para 1080 px e converte para jpg antes de enviar
+const reduzirFoto = (file) => new Promise((ok, erro) => {
+    const img = new Image();
+    img.onload = () => {
+        const k = Math.min(1, 1080 / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(img.src);
+        ok(c.toDataURL("image/jpeg", 0.85).split(",")[1]);
+    };
+    img.onerror = () => erro(new Error("Não foi possível ler a foto. Tente outra ou tire um print dela."));
+    img.src = URL.createObjectURL(file);
+});
+
+/* ---------- gravar música direto no site ---------- */
+const PODE_GRAVAR = !!(window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+const MAX_GRAVACAO = 240; // segundos; em mp3 de 128 kbps dá cerca de 4 MB
+let gravador = null, fluxo = null, pedacos = [], gravacao = null, cronometro = null, inicio = 0;
+const rotuloTempo = (s) => Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0");
+
+function limparGravacao() {
+    clearInterval(cronometro);
+    if (gravador && gravador.state !== "inactive") { gravador.onstop = null; gravador.stop(); }
+    if (fluxo) fluxo.getTracks().forEach((t) => t.stop());
+    gravador = fluxo = gravacao = null;
+    pedacos = [];
+    $("previa").hidden = true;
+    $("previa").removeAttribute("src");
+    $("tempo").textContent = "";
+    $("gravar").textContent = "Gravar agora";
+    $("gravar").classList.remove("gravando");
+    $("gravar").disabled = false;
+}
+
+// o Android grava em webm e o iPhone pode não tocar; em mp3 toca em qualquer aparelho
+async function paraMp3(blob) {
+    if (!window.lamejs) return null;
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+    ctx.close();
+    const canal = buf.getChannelData(0);
+    const pcm = new Int16Array(canal.length);
+    for (let i = 0; i < canal.length; i++) {
+        const v = Math.max(-1, Math.min(1, canal[i]));
+        pcm[i] = v < 0 ? v * 32768 : v * 32767;
+    }
+    const enc = new lamejs.Mp3Encoder(1, buf.sampleRate, 128);
+    const partes = [];
+    for (let i = 0; i < pcm.length; i += 1152) {
+        const o = enc.encodeBuffer(pcm.subarray(i, i + 1152));
+        if (o.length) partes.push(o);
+    }
+    const fim = enc.flush();
+    if (fim.length) partes.push(fim);
+    return new Blob(partes, { type: "audio/mpeg" });
+}
+
+async function terminarGravacao() {
+    clearInterval(cronometro);
+    fluxo.getTracks().forEach((t) => t.stop());
+    const segundos = Math.min(MAX_GRAVACAO, Math.round((Date.now() - inicio) / 1000));
+    const bruto = new Blob(pedacos, { type: gravador.mimeType });
+    $("gravar").classList.remove("gravando");
+    $("gravar").disabled = true;
+    $("postar").disabled = true;
+    $("msg").textContent = "Preparando a gravação…";
+    try {
+        const mp3 = await paraMp3(bruto).catch(() => null);
+        gravacao = mp3
+            ? new File([mp3], "gravacao.mp3", { type: "audio/mpeg" })
+            : new File([bruto], "gravacao." + (/mp4/.test(bruto.type) ? "m4a" : "webm"), { type: bruto.type });
+        $("audio").value = "";
+        $("previa").src = URL.createObjectURL(gravacao);
+        $("previa").hidden = false;
+        $("tempo").textContent = rotuloTempo(segundos);
+        $("gravar").textContent = "Regravar";
+        $("msg").textContent = "";
+    } finally {
+        $("gravar").disabled = false;
+        $("postar").disabled = false;
+    }
+}
+
+async function alternarGravacao() {
+    if (gravador && gravador.state === "recording") { gravador.stop(); return; }
+    limparGravacao();
+    $("msg").textContent = "";
+    try {
+        fluxo = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    } catch (err) {
+        $("msg").textContent = "Não consegui usar o microfone. Libere a permissão no navegador e tente de novo.";
+        return;
+    }
+    gravador = new MediaRecorder(fluxo);
+    gravador.ondataavailable = (e) => { if (e.data.size) pedacos.push(e.data); };
+    gravador.onstop = terminarGravacao;
+    gravador.start();
+    inicio = Date.now();
+    $("gravar").textContent = "Parar";
+    $("gravar").classList.add("gravando");
+    cronometro = setInterval(() => {
+        const s = (Date.now() - inicio) / 1000;
+        $("tempo").textContent = rotuloTempo(s) + " / " + rotuloTempo(MAX_GRAVACAO);
+        if (s >= MAX_GRAVACAO) gravador.stop();
+    }, 250);
+}
+
+if (PODE_GRAVAR) $("gravar").addEventListener("click", alternarGravacao);
+else document.querySelector(".gravador").hidden = true;
+$("audio").addEventListener("change", () => { if ($("audio").files[0]) limparGravacao(); });
+dialogo.addEventListener("close", limparGravacao);
+
+const MIME_POR_EXTENSAO = { mp3:"audio/mpeg", m4a:"audio/mp4", mp4:"audio/mp4", aac:"audio/aac", wav:"audio/wav", ogg:"audio/ogg", oga:"audio/ogg", webm:"audio/webm" };
+// o iPhone costuma mandar o tipo da música vazio ou diferente do padrão, então vale a extensão primeiro
+const mimeDoAudio = (file) => MIME_POR_EXTENSAO[file.name.split(".").pop().toLowerCase()] || file.type;
+
+$("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const foto = $("imagem").files[0], musica = gravacao || $("audio").files[0];
+    const msg = $("msg");
+    const modo = dialogo.dataset.modo;
+    if (modo === "foto" && !foto) { msg.textContent = "Escolha uma foto."; return; }
+    if (modo === "musica" && !musica) { msg.textContent = "Escolha um arquivo de música ou grave uma."; return; }
+    if (musica && musica.size > 8 * 1024 * 1024) { msg.textContent = "A música passa de 8 MB. Comprima o arquivo."; return; }
+    const mimeAudio = musica ? mimeDoAudio(musica) : "";
+    if (musica && !mimeAudio.startsWith("audio/")) {
+        msg.textContent = "Não reconheci esse formato de música (" + (musica.type || musica.name.split(".").pop()) + "). Use mp3, m4a ou wav.";
+        return;
+    }
+    $("postar").disabled = true;
+    msg.textContent = "Enviando…";
+    try {
+        const r = await chamar({
+            acao: "postar",
+            titulo: $("titulo-post").value, legenda: $("legenda-post").value,
+            imagem: foto ? await reduzirFoto(foto) : "", imagem_mime: "image/jpeg",
+            audio: musica ? await lerBase64(musica) : "", audio_mime: mimeAudio
+        });
+        if (!r.ok) throw new Error(r.erro);
+        $("form").reset();
+        dialogo.close();
+        recarregar();
+    } catch (err) {
+        msg.textContent = err.message || "Não foi possível postar. Tente de novo.";
+    } finally {
+        $("postar").disabled = false;
+    }
+});
+
+/* ---------- novaRv review ---------- */
+const dRv = $("rv-dialogo");
+let novaRv = "filme", escolhidoRv = null, buscaIdRv = 0, esperaRv = null;
+
+function pintarCategoriasRv() {
+    $("rv-cats").replaceChildren(...[["filme", "Filme"], ["musica", "Música"], ["album", "Álbum"]].map(([id, nome]) => {
+        const b = el("button", "curtir", nome);
+        b.type = "button";
+        b.setAttribute("aria-pressed", novaRv === id);
+        b.addEventListener("click", () => { novaRv = id; limparEscolhaRv(); pintarCategoriasRv(); });
+        return b;
+    }));
+}
+function limparEscolhaRv() {
+    escolhidoRv = null; buscaIdRv++;
+    $("rv-escolhido").hidden = true; $("rv-area-busca").hidden = false; $("rv-area-manual").hidden = true;
+    $("rv-busca").value = ""; $("rv-resultados").replaceChildren();
+}
+function escolherRv(item) {
+    escolhidoRv = item;
+    const caixa = $("rv-escolhido");
+    caixa.replaceChildren();
+    if (item.capa_url) { const i = el("img", "capa"); i.src = item.capa_url; i.alt = ""; caixa.append(i); }
+    const info = el("div", "review-info");
+    info.append(el("p", "detalhe", item.titulo), el("p", "categoria", item.detalhe));
+    const trocar = el("button", "link", "Trocar");
+    trocar.type = "button";
+    trocar.addEventListener("click", limparEscolhaRv);
+    info.append(trocar);
+    caixa.append(info);
+    caixa.hidden = false; $("rv-area-busca").hidden = true;
+}
+async function buscarRv() {
+    const termo = $("rv-busca").value.trim(), id = ++buscaIdRv, caixa = $("rv-resultados");
+    if (termo.length < 2) { caixa.replaceChildren(); return; }
+    caixa.replaceChildren(el("p", "vazio-coment", "Buscando…"));
+    const r = await chamar({ acao: "buscarItem", categoria: novaRv, termo }).catch(() => ({ ok: false, erro: "Sem conexão com o servidor." }));
+    if (id !== buscaIdRv) return;
+    if (!r.ok) { caixa.replaceChildren(el("p", "vazio-coment", r.erro)); return; }
+    if (!r.itens.length) { caixa.replaceChildren(el("p", "vazio-coment", "Nada encontrado. Tente outro nome ou preencha à mão.")); return; }
+    caixa.replaceChildren(...r.itens.map((item) => {
+        const b = el("button", "resultado");
+        b.type = "button";
+        if (item.capa_url) { const i = new Image(); i.src = item.capa_url; i.alt = ""; b.append(i); }
+        const t = el("span", "", item.titulo + (item.detalhe ? " (" + item.detalhe + ")" : ""));
+        b.append(t);
+        b.addEventListener("click", () => escolherRv(item));
+        return b;
+    }));
+}
+$("rv-busca").addEventListener("input", () => { clearTimeout(esperaRv); esperaRv = setTimeout(buscarRv, 450); });
+$("rv-manual-btn").addEventListener("click", () => { $("rv-area-busca").hidden = true; $("rv-area-manual").hidden = false; });
+$("rv-voltar-busca").addEventListener("click", () => { $("rv-area-manual").hidden = true; $("rv-area-busca").hidden = false; });
+const pintarNotaRv = () => { $("rv-nota-rotulo").textContent = estrelas(Number($("rv-nota").value)); };
+$("rv-nota").addEventListener("input", pintarNotaRv);
+
+$("rv-cancelar").addEventListener("click", () => dRv.close());
+
+$("rv-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = $("rv-msg");
+    const manual = !$("rv-area-manual").hidden;
+    const item = manual ? { item_id: "", titulo: $("rv-m-titulo").value.trim(), detalhe: $("rv-m-detalhe").value.trim(), capa_url: "" } : escolhidoRv;
+    if (!item || !item.titulo) { msg.textContent = "Escolha um título na busca ou preencha à mão."; return; }
+    $("rv-postar").disabled = true;
+    msg.textContent = "Enviando…";
+    try {
+        const r = await chamar({ acao: "postarReview", categoria: novaRv, ...item, nota: Number($("rv-nota").value), texto: $("rv-texto").value });
+        if (!r.ok) throw new Error(r.erro);
+        $("rv-form").reset();
+        dRv.close();
+        recarregar();
+    } catch (err) {
+        msg.textContent = err.message || "Não foi possível postar. Tente de novo.";
+    } finally {
+        $("rv-postar").disabled = false;
+    }
+});
+
+function abrirReview() { $("rv-msg").textContent = ""; pintarCategoriasRv(); limparEscolhaRv(); pintarNotaRv(); dRv.showModal(); }
+
+function recarregar() {
+    if (plParam === "lista") verBiblioteca();
+    else if (plParam) verPlaylist(plParam, perfil);
+    else carregar();
+}
+function criar(tipo) { if (tipo === "review") abrirReview(); else abrirNovo(tipo); }
+/* ---------- botão + (criar) ---------- */
+const fab = $("fab"), fabMenu = $("fab-menu");
+function fecharFab() {
+    fabMenu.hidden = true;
+    fab.classList.remove("aberto");
+    fab.setAttribute("aria-expanded", "false");
+}
+fab.addEventListener("click", () => {
+    const abrir = fabMenu.hidden;
+    fabMenu.hidden = !abrir;
+    fab.classList.toggle("aberto", abrir);
+    fab.setAttribute("aria-expanded", abrir);
+});
+document.addEventListener("click", (e) => { if (!fabMenu.hidden && !e.target.closest("#fab, #fab-menu")) fecharFab(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharFab(); });
+fabMenu.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { fecharFab(); criar(b.dataset.tipo); }));
+
+if (token) {
+    carregarBiblioteca();
+    recarregar();
+}
+// vindo da página de reviews: já abre o que foi escolhido no botão +
+const novoParam = new URLSearchParams(location.search).get("novo");
+if (["foto", "musica", "review"].includes(novoParam)) { history.replaceState(null, "", "feed.html"); criar(novoParam); }
+</script>
+</body>
+</html>
